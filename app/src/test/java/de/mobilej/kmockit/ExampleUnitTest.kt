@@ -296,4 +296,27 @@ class ExampleUnitTest {
         assertEquals(2, intHolder.size)
         assertEquals(2, stringHolder.size)
     }
+
+
+    @Test
+    fun simpleTest21() {
+        val lambdaHolder = mutableListOf<() -> String>()
+        sut.myMethod4 { "Hello" }
+        verifications {
+            once { myDependency.higherOrderFunction(capture(lambdaHolder)) }
+        }
+
+        assertEquals("Hello", lambdaHolder[0]())
+    }
+
+    @Test
+    fun simpleTest22() {
+        val lambdaHolder = mutableListOf<(Int, String) -> Long>()
+        sut.myMethod5 { _, _ -> 21L }
+        verifications {
+            once { myDependency.higherOrderFunction2(capture(lambdaHolder)) }
+        }
+
+        assertEquals(21L, lambdaHolder[0](1, "A"))
+    }
 }

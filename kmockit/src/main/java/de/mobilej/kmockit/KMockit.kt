@@ -262,14 +262,39 @@ class Stubber {
 
 }
 
+@Suppress("UNCHECKED_CAST")
 fun <T> silentCreate(clazz: KClass<*>): T {
+
+    when (clazz.qualifiedName) {
+        "kotlin.Function0" -> return { } as T
+        "kotlin.Function1" -> return { _: Any? -> Unit } as T
+        "kotlin.Function2" -> return { _: Any?, _: Any? -> Unit } as T
+        "kotlin.Function3" -> return { _: Any?, _: Any?, _: Any? -> Unit } as T
+        "kotlin.Function4" -> return { _: Any?, _: Any?, _: Any?, _: Any? -> Unit } as T
+        "kotlin.Function5" -> return { _: Any?, _: Any?, _: Any?, _: Any?, _: Any? -> Unit } as T
+        "kotlin.Function6" -> return { _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any? -> Unit } as T
+        "kotlin.Function7" -> return { _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any? -> Unit } as T
+        "kotlin.Function8" -> return { _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any? -> Unit } as T
+        "kotlin.Function9" -> return { _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any? -> Unit } as T
+        "kotlin.Function10" -> return { _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any? -> Unit } as T
+        "kotlin.Function11" -> return { _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any? -> Unit } as T
+        "kotlin.Function12" -> return { _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any? -> Unit } as T
+        "kotlin.Function13" -> return { _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any? -> Unit } as T
+        "kotlin.Function14" -> return { _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any? -> Unit } as T
+        "kotlin.Function15" -> return { _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any? -> Unit } as T
+        "kotlin.Function16" -> return { _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any? -> Unit } as T
+        "kotlin.Function17" -> return { _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any? -> Unit } as T
+        "kotlin.Function18" -> return { _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any? -> Unit } as T
+        "kotlin.Function19" -> return { _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any? -> Unit } as T
+        "kotlin.Function20" -> return { _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any?, _: Any? -> Unit } as T
+    }
+
     try {
         val rf = ReflectionFactory.getReflectionFactory()
         val objDef = Object::class.java.getDeclaredConstructor()
         val intConstr = rf.newConstructorForSerialization(
                 clazz.java, objDef
         )
-        @Suppress("UNCHECKED_CAST")
         return clazz.java.cast(intConstr.newInstance()) as T
     } catch (e: RuntimeException) {
         throw e
