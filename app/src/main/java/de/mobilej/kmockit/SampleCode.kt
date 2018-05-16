@@ -42,6 +42,10 @@ fun AnotherClass.extension(i: Int): String {
     return "$i ${this.myMethod()}"
 }
 
+fun topLevel(v: String): String {
+    return ">>$v<<"
+}
+
 class UnderTest(val dependency: MyDependency) {
 
     fun myMethod(value: String): String {

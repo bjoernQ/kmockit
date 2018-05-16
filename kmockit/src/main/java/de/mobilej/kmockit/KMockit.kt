@@ -15,6 +15,7 @@ import java.net.URL
 import java.net.URLClassLoader
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
+import kotlin.reflect.KType
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.jvm.javaConstructor
@@ -343,7 +344,7 @@ fun verifications(block: VerificationsBlock.() -> Unit) {
     block.invoke(VerificationsBlock())
 }
 
-class MockItUp(val kClass: KClass<*>) {
+class MockItUp(private val kClass: KClass<*>? = null) {
 
     val ops = mutableListOf<Pair<KFunction<*>, (Array<Any?>) -> Any?>>()
 
@@ -352,6 +353,10 @@ class MockItUp(val kClass: KClass<*>) {
     }
 
     fun <R> ctor(vararg args: KClass<*>, function: (Array<Any?>) -> R) {
+        if (kClass == null) {
+            throw IllegalArgumentException("Ctors not supported here")
+        }
+
         val wantedParams = args.map { it.createType() }
         val ctor = kClass.constructors.find {
             val ptypes = it.parameters.map { it.type }
@@ -365,13 +370,25 @@ class MockItUp(val kClass: KClass<*>) {
     }
 }
 
+fun mockupSpecial(ktFile: String, block: MockItUp.() -> Unit) {
+    val mockItUp = MockItUp()
+    block(mockItUp)
+    val toBeMocked = Class.forName("${ktFile}Kt")
+    
+    createMockup(mockItUp, toBeMocked, null)
+}
+
 inline fun <reified T> mockup(block: MockItUp.() -> Unit) {
     val mockItUp = MockItUp(T::class)
     block(mockItUp)
 
+    createMockup(mockItUp, T::class.java, T::class.createType())
+}
+
+fun createMockup(mockItUp: MockItUp, toBeMocked: Class<*>, toBeMockedType: KType?) {
     // collect all methods to be mocked and create a JMockit MockUp dynamically
     val generic = TypeDescription.Generic.Builder
-            .parameterizedType(MockUp::class.java, T::class.java).build()
+            .parameterizedType(MockUp::class.java, toBeMocked).build()
 
     val name = "generatedkmockit.MockUp${System.nanoTime()}"
     var bb = ByteBuddy().subclass(generic, ConstructorStrategy.Default.IMITATE_SUPER_CLASS_OPENING)
@@ -386,11 +403,11 @@ inline fun <reified T> mockup(block: MockItUp.() -> Unit) {
 
         var retType: Type = pair.first.returnType.javaType
         var methodName = pair.first.name
-        val paramTypes = pair.first.parameters.filter { !it.type.isSubtypeOf(T::class.createType()) }.map { it.type.javaType }
+        val paramTypes = pair.first.parameters.filter { toBeMockedType == null || !it.type.isSubtypeOf(toBeMockedType) }.map { it.type.javaType }
 
         if (methodName == "<init>") {
             methodName = "\$init"
-            retType = java.lang.Void.TYPE
+            retType = Void.TYPE
         }
 
         bb = bb.defineMethod(methodName, retType, Visibility.PUBLIC)

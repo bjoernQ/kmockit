@@ -253,4 +253,28 @@ class ExampleUnitTest {
         assertEquals(null, AnotherClass("2").value)
         assertTrue(ctorCalled)
     }
+
+    @Test
+    fun simpleTest18() {
+
+        mockupSpecial("de.mobilej.kmockit.SampleCode") {
+            on(AnotherClass::extension) {
+                "mocked"
+            }
+        }
+
+        assertEquals("mocked", AnotherClass("2").extension(5))
+    }
+
+    @Test
+    fun simpleTest19() {
+
+        mockupSpecial("de.mobilej.kmockit.SampleCode") {
+            on(::topLevel) {
+                "mocked"
+            }
+        }
+
+        assertEquals("mocked", topLevel("Hello"))
+    }
 }
