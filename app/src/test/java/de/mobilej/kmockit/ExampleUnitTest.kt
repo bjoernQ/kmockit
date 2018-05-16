@@ -1,6 +1,7 @@
 package de.mobilej.kmockit
 
 import junit.framework.Assert.assertEquals
+import junit.framework.Assert.assertTrue
 import mockit.Injectable
 import mockit.Tested
 import mockit.integration.junit4.JMockit
@@ -236,5 +237,20 @@ class ExampleUnitTest {
 
         assertEquals("1", Evil().ambiguous(5))
         assertEquals("2", Evil().ambiguous("X"))
+    }
+
+    @Test
+    fun simpleTest17() {
+
+        var ctorCalled = false
+
+        mockup<AnotherClass> {
+            ctor(String::class) {
+                ctorCalled = true
+            }
+        }
+
+        assertEquals(null, AnotherClass("2").value)
+        assertTrue(ctorCalled)
     }
 }

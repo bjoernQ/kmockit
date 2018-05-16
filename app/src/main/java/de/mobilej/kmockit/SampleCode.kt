@@ -25,6 +25,23 @@ class Evil {
     }
 }
 
+class AnotherClass {
+
+    var value: String
+
+    constructor(v: String) {
+        value = v
+    }
+
+    fun myMethod(): String {
+        return "Value is $value"
+    }
+}
+
+fun AnotherClass.extension(i: Int): String {
+    return "$i ${this.myMethod()}"
+}
+
 class UnderTest(val dependency: MyDependency) {
 
     fun myMethod(value: String): String {

@@ -15,9 +15,9 @@ import java.net.URL
 import java.net.URLClassLoader
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
-import kotlin.reflect.KType
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.isSubtypeOf
+import kotlin.reflect.jvm.javaConstructor
 import kotlin.reflect.jvm.javaMethod
 import kotlin.reflect.jvm.javaType
 
@@ -343,7 +343,7 @@ fun verifications(block: VerificationsBlock.() -> Unit) {
     block.invoke(VerificationsBlock())
 }
 
-class MockItUp {
+class MockItUp(val kClass: KClass<*>) {
 
     val ops = mutableListOf<Pair<KFunction<*>, (Array<Any?>) -> Any?>>()
 
@@ -351,10 +351,22 @@ class MockItUp {
         ops.add(Pair(kFunction1, function))
     }
 
+    fun <R> ctor(vararg args: KClass<*>, function: (Array<Any?>) -> R) {
+        val wantedParams = args.map { it.createType() }
+        val ctor = kClass.constructors.find {
+            val ptypes = it.parameters.map { it.type }
+            ptypes == wantedParams
+        }
+        if (ctor != null) {
+            ops.add(Pair(ctor, function))
+        } else {
+            throw IllegalArgumentException("No such constructor")
+        }
+    }
 }
 
 inline fun <reified T> mockup(block: MockItUp.() -> Unit) {
-    val mockItUp = MockItUp()
+    val mockItUp = MockItUp(T::class)
     block(mockItUp)
 
     // collect all methods to be mocked and create a JMockit MockUp dynamically
@@ -367,14 +379,19 @@ inline fun <reified T> mockup(block: MockItUp.() -> Unit) {
 
     mockItUp.ops.forEach { pair ->
 
-        DelegateMethod.add(name, pair.first.javaMethod, pair.second)
+        DelegateMethod.add(name, pair.first.javaMethod ?: pair.first.javaConstructor, pair.second)
 
         val annotation = AnnotationDescription.Builder.ofType(Mock::class.java)
                 .build()
 
-        val retType: Type? = pair.first.returnType.javaType
-        val methodName = pair.first.name
+        var retType: Type = pair.first.returnType.javaType
+        var methodName = pair.first.name
         val paramTypes = pair.first.parameters.filter { !it.type.isSubtypeOf(T::class.createType()) }.map { it.type.javaType }
+
+        if (methodName == "<init>") {
+            methodName = "\$init"
+            retType = java.lang.Void.TYPE
+        }
 
         bb = bb.defineMethod(methodName, retType, Visibility.PUBLIC)
                 .withParameters(paramTypes)
@@ -415,15 +432,17 @@ inline fun <T> forceFnType(fn: T) = fn as KFunction<*>
 inline fun <reified T> function(name: String, vararg args: KClass<*>): KFunction<*> {
     val wantedParams = args.map { it.createType() }
     val fn = T::class.members.filter {
-        if(it.name == name){
-            val ptypes = it.parameters.map { it.type }.takeLastWhile { it!=T::class.createType() }
+        if (it.name == name) {
+            val ptypes = it.parameters.map { it.type }.takeLastWhile { it != T::class.createType() }
             ptypes == wantedParams
         } else {
-        false
+            false
         }
     }
 
-    if(fn.size!=1){
+    if (fn.size != 1 && fn.first() is KFunction<*>) {
+        throw IllegalArgumentException("No such function found")
+    } else if (fn.first() !is KFunction<*>) {
         throw IllegalArgumentException("No such function found")
     }
 
