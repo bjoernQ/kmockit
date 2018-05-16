@@ -102,8 +102,8 @@ class MyDependency {
         return value.toString()
     }
 
-    fun doSomethingAgain(i: Int?, v: String): String {
-        return v ?: ""
+    fun doSomethingAgain(i: Int, v: String): String {
+        return v
     }
 
     fun unused() {

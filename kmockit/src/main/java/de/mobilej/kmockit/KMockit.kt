@@ -9,6 +9,7 @@ import net.bytebuddy.description.type.TypeDescription
 import net.bytebuddy.dynamic.loading.ClassLoadingStrategy
 import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy
 import net.bytebuddy.implementation.MethodDelegation
+import sun.reflect.ReflectionFactory
 import java.io.File
 import java.lang.reflect.Type
 import java.net.URL
@@ -70,11 +71,11 @@ interface Accessor {
     fun anyByte(): Byte
     fun anyShort(): Short
 
-    fun <T> argThat(condition: (value: T) -> Boolean): T
+    fun <T> argThat(retType: KClass<*>, condition: (value: T) -> Boolean): T
 }
 
 interface VerificationAccessor : Accessor {
-    fun <T> capture(capturedValues: MutableList<T>): T
+    fun <T> capture(retType: KClass<*>, capturedValues: MutableList<T>): T
 }
 
 class Stubber {
@@ -127,17 +128,17 @@ class Stubber {
                 return withInstanceLike(0.toShort())
             }
 
-            override fun <T> argThat(condition: (value: T) -> Boolean): T {
-                return with(object : Delegate<T> {
+            override fun <T> argThat(retType: KClass<*>, condition: (value: T) -> Boolean): T {
+                with(object : Delegate<T> {
                     @Suppress("unused")
                     fun match(value: T): Boolean {
                         return npeAway(condition(value))
                     }
                 })
+                return silentCreate(retType)
             }
         }
     }
-
 
     infix fun returns(answer: () -> Any?) {
         object : Expectations(), Accessor {
@@ -186,13 +187,14 @@ class Stubber {
                 return withInstanceLike(0.toShort())
             }
 
-            override fun <T> argThat(condition: (value: T) -> Boolean): T {
-                return with(object : Delegate<T> {
+            override fun <T> argThat(retType: KClass<*>, condition: (value: T) -> Boolean): T {
+                with(object : Delegate<T> {
                     @Suppress("unused")
                     fun match(value: T): Boolean {
                         return npeAway(condition(value))
                     }
                 })
+                return silentCreate(retType)
             }
         }
     }
@@ -246,17 +248,42 @@ class Stubber {
                 return withInstanceLike(0.toShort())
             }
 
-            override fun <T> argThat(condition: (value: T) -> Boolean): T {
-                return with(object : Delegate<T> {
+            override fun <T> argThat(retType: KClass<*>, condition: (value: T) -> Boolean): T {
+                with(object : Delegate<T> {
                     @Suppress("unused")
                     fun match(value: T): Boolean {
                         return npeAway(condition(value))
                     }
                 })
+                return silentCreate(retType)
             }
         }
     }
 
+}
+
+fun <T> silentCreate(clazz: KClass<*>): T {
+    try {
+        val rf = ReflectionFactory.getReflectionFactory()
+        val objDef = Object::class.java.getDeclaredConstructor()
+        val intConstr = rf.newConstructorForSerialization(
+                clazz.java, objDef
+        )
+        @Suppress("UNCHECKED_CAST")
+        return clazz.java.cast(intConstr.newInstance()) as T
+    } catch (e: RuntimeException) {
+        throw e
+    } catch (e: Exception) {
+        throw IllegalStateException("Cannot create object", e)
+    }
+}
+
+inline fun <reified T> Accessor.argThat(noinline condition: (value: T) -> Boolean): T {
+    return this.argThat(T::class, condition)
+}
+
+inline fun <reified T> VerificationAccessor.capture(capturedValues: MutableList<T>): T {
+    return this.capture(T::class, capturedValues)
 }
 
 fun every(block: Accessor.() -> Unit): Stubber {
@@ -311,17 +338,19 @@ class VerificationsBlock {
                 return withInstanceLike(0.toShort())
             }
 
-            override fun <T> argThat(condition: (value: T) -> Boolean): T {
-                return with(object : Delegate<T> {
+            override fun <T> argThat(retType: KClass<*>, condition: (value: T) -> Boolean): T {
+                with(object : Delegate<T> {
                     @Suppress("unused")
                     fun match(value: T): Boolean {
                         return npeAway(condition(value))
                     }
                 })
+                return silentCreate(retType)
             }
 
-            override fun <T> capture(capturedValues: MutableList<T>): T {
-                return npeAway<T>(withCapture(capturedValues))
+            override fun <T> capture(retType: KClass<*>, capturedValues: MutableList<T>): T {
+                npeAway<T>(withCapture(capturedValues))
+                return silentCreate(retType)
             }
 
         }

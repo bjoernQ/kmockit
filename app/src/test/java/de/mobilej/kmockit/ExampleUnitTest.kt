@@ -287,8 +287,13 @@ class ExampleUnitTest {
         val result = sut.myMethod3("myVal")
         assertEquals("testtest", result)
 
+        val intHolder = mutableListOf<Int>()
+        val stringHolder = mutableListOf<String>()
         verifications {
-            twice { myDependency.doSomethingAgain(anyInt(), anyString()) }
+            twice { myDependency.doSomethingAgain(capture(intHolder), capture(stringHolder)) }
         }
+
+        assertEquals(2, intHolder.size)
+        assertEquals(2, stringHolder.size)
     }
 }
