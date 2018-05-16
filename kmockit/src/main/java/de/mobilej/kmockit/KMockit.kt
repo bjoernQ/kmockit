@@ -131,7 +131,7 @@ class Stubber {
                 return with(object : Delegate<T> {
                     @Suppress("unused")
                     fun match(value: T): Boolean {
-                        return condition(value)
+                        return npeAway(condition(value))
                     }
                 })
             }
@@ -190,7 +190,7 @@ class Stubber {
                 return with(object : Delegate<T> {
                     @Suppress("unused")
                     fun match(value: T): Boolean {
-                        return condition(value)
+                        return npeAway(condition(value))
                     }
                 })
             }
@@ -250,7 +250,7 @@ class Stubber {
                 return with(object : Delegate<T> {
                     @Suppress("unused")
                     fun match(value: T): Boolean {
-                        return condition(value)
+                        return npeAway(condition(value))
                     }
                 })
             }
@@ -315,7 +315,7 @@ class VerificationsBlock {
                 return with(object : Delegate<T> {
                     @Suppress("unused")
                     fun match(value: T): Boolean {
-                        return condition(value)
+                        return npeAway(condition(value))
                     }
                 })
             }
@@ -374,7 +374,7 @@ fun mockupSpecial(ktFile: String, block: MockItUp.() -> Unit) {
     val mockItUp = MockItUp()
     block(mockItUp)
     val toBeMocked = Class.forName("${ktFile}Kt")
-    
+
     createMockup(mockItUp, toBeMocked, null)
 }
 

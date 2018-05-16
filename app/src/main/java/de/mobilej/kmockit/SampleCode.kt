@@ -56,6 +56,10 @@ class UnderTest(val dependency: MyDependency) {
         return dependency.doSomething(value) + dependency.doSomething(value)
     }
 
+    fun myMethod3(value: String): String {
+        return dependency.doSomethingAgain(5, value) + dependency.doSomethingAgain(5, value)
+    }
+
     fun myMethodInt(i: Int): Int {
         return dependency.doInt(i);
     }
@@ -96,6 +100,10 @@ class MyDependency {
 
     fun anotherMethod(value: Int): String {
         return value.toString()
+    }
+
+    fun doSomethingAgain(i: Int?, v: String): String {
+        return v ?: ""
     }
 
     fun unused() {

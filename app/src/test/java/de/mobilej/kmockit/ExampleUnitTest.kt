@@ -277,4 +277,18 @@ class ExampleUnitTest {
 
         assertEquals("mocked", topLevel("Hello"))
     }
+
+    @Test
+    fun simpleTest20() {
+        every {
+            myDependency.doSomethingAgain(argThat { it == 5 }, argThat { it == "myVal" })
+        } returns { "test" }
+
+        val result = sut.myMethod3("myVal")
+        assertEquals("testtest", result)
+
+        verifications {
+            twice { myDependency.doSomethingAgain(anyInt(), anyString()) }
+        }
+    }
 }
