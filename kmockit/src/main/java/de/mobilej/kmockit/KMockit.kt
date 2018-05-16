@@ -13,7 +13,9 @@ import java.io.File
 import java.lang.reflect.Type
 import java.net.URL
 import java.net.URLClassLoader
+import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
+import kotlin.reflect.KType
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.jvm.javaMethod
@@ -405,6 +407,27 @@ fun cleanUpIfFirstRun(directory: String) {
 
         File(directory, "generatedkmockit").deleteRecursively()
     }
+}
+
+@Suppress("NOTHING_TO_INLINE")
+inline fun <T> forceFnType(fn: T) = fn as KFunction<*>
+
+inline fun <reified T> function(name: String, vararg args: KClass<*>): KFunction<*> {
+    val wantedParams = args.map { it.createType() }
+    val fn = T::class.members.filter {
+        if(it.name == name){
+            val ptypes = it.parameters.map { it.type }.takeLastWhile { it!=T::class.createType() }
+            ptypes == wantedParams
+        } else {
+        false
+        }
+    }
+
+    if(fn.size!=1){
+        throw IllegalArgumentException("No such function found")
+    }
+
+    return fn.first() as KFunction<*>
 }
 
 private var firstRun = true

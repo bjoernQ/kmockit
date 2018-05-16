@@ -15,6 +15,14 @@ class Evil {
     fun another(value: Int, value2: Int): String {
         return "$value + $value2 = ${value + value2}"
     }
+
+    fun ambiguous(value: Int): String {
+        return value.toString()
+    }
+
+    fun ambiguous(value: String): String {
+        return value
+    }
 }
 
 class UnderTest(val dependency: MyDependency) {

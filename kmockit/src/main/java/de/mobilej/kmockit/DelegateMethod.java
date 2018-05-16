@@ -43,11 +43,16 @@ public class DelegateMethod {
     }
 
     private static String createSignature(@Nullable Method javaMethod) {
-        // TODO also the param types need to be in the name
         if(javaMethod==null){
             return "null";
         }
-        return javaMethod.getName()+javaMethod.getReturnType().toString();
+
+        StringBuilder params = new StringBuilder();
+        for (Class<?> paramType : javaMethod.getParameterTypes()) {
+            params.append(paramType.getSimpleName());
+        }
+
+        return javaMethod.getName()+javaMethod.getReturnType().toString()+params.toString();
     }
 
 }

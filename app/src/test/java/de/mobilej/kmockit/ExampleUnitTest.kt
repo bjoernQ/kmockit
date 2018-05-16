@@ -204,4 +204,37 @@ class ExampleUnitTest {
             once { myDependency.doByte(anyByte()) }
         }
     }
+
+    @Test
+    fun simpleTest15() {
+
+        mockup<Evil> {
+            on(forceFnType<(Evil.(Int) -> String)>(Evil::ambiguous)) {
+                "1"
+            }
+            on(forceFnType<(Evil.(String) -> String)>(Evil::ambiguous)) {
+                "2"
+            }
+        }
+
+        assertEquals("1", Evil().ambiguous(5))
+        assertEquals("2", Evil().ambiguous("X"))
+    }
+
+    @Test
+    fun simpleTest16() {
+
+        mockup<Evil> {
+            on(function<Evil>("ambiguous", Int::class)) {
+                "1"
+            }
+
+            on(function<Evil>("ambiguous", String::class)) {
+                "2"
+            }
+        }
+
+        assertEquals("1", Evil().ambiguous(5))
+        assertEquals("2", Evil().ambiguous("X"))
+    }
 }
