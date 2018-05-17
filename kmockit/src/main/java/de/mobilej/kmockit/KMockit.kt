@@ -474,7 +474,7 @@ fun createMockup(mockItUp: MockItUp, toBeMocked: Class<*>, toBeMockedType: KType
     // this is a bit hacky
     val cl = JMockit::class.java.classLoader as URLClassLoader
     val intermediatesClasses =
-            (cl.urLs.find { it.toString().contains("intermediates") && File(it.file).exists() })
+            (cl.urLs.find { it.toString().contains("intermediates") && File(it.file).isDirectory && File(it.file).exists() })
                     ?: (cl.urLs.find { File(it.file).isDirectory })
     val classesDir = (intermediatesClasses as URL).file
 
