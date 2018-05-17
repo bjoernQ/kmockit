@@ -68,6 +68,10 @@ class UnderTest(val dependency: MyDependency) {
         return dependency.higherOrderFunction2(block)
     }
 
+    fun myMethod6(block: (Int, String) -> Long): String {
+        return dependency.higherOrderFunction3(21, 42, block)
+    }
+
     fun myMethodInt(i: Int): Int {
         return dependency.doInt(i);
     }
@@ -119,6 +123,10 @@ class MyDependency {
     }
 
     fun higherOrderFunction2(block: (Int, String) -> Long): String {
+        return block(5, "Hello").toString()
+    }
+
+    fun higherOrderFunction3(p1: Int, p2: Int, block: (Int, String) -> Long): String {
         return block(5, "Hello").toString()
     }
 

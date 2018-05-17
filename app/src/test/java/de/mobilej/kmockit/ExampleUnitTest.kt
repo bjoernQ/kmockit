@@ -319,4 +319,15 @@ class ExampleUnitTest {
 
         assertEquals(21L, lambdaHolder[0](1, "A"))
     }
+
+    @Test
+    fun simpleTest23() {
+        val lambdaHolder = mutableListOf<(Int, String) -> Long>()
+        sut.myMethod6 { _, _ -> 21L }
+        verifications {
+            once { myDependency.higherOrderFunction3(argThat { it == 21 }, argThat { it == 42 }, capture(lambdaHolder)) }
+        }
+
+        assertEquals(21L, lambdaHolder[0](1, "A"))
+    }
 }
