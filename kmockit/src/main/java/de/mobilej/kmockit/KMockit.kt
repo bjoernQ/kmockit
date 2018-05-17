@@ -6,7 +6,6 @@ import net.bytebuddy.ByteBuddy
 import net.bytebuddy.description.annotation.AnnotationDescription
 import net.bytebuddy.description.modifier.Visibility
 import net.bytebuddy.description.type.TypeDescription
-import net.bytebuddy.dynamic.loading.ClassLoadingStrategy
 import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy
 import net.bytebuddy.implementation.MethodDelegation
 import sun.reflect.ReflectionFactory
@@ -475,14 +474,13 @@ fun createMockup(mockItUp: MockItUp, toBeMocked: Class<*>, toBeMockedType: KType
     // this is a bit hacky
     val cl = JMockit::class.java.classLoader as URLClassLoader
     val intermediatesClasses =
-            (cl.urLs.find { it.toString().contains("intermediates") })
+            (cl.urLs.find { it.toString().contains("intermediates") && File(it.file).exists() })
                     ?: (cl.urLs.find { File(it.file).isDirectory })
     val classesDir = (intermediatesClasses as URL).file
 
     cleanUpIfFirstRun(classesDir)
 
     bb.make()
-            .load(MockUp::class.java.classLoader, ClassLoadingStrategy.Default.WRAPPER_PERSISTENT)
             .saveIn(File(classesDir))
 
     val clz = Class.forName(name)
